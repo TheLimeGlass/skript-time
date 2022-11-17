@@ -1,49 +1,64 @@
-apply plugin: 'java-library'
-apply plugin: 'eclipse'
+import org.apache.tools.ant.filters.ReplaceTokens
 
-jar.archiveName = project.name + '.jar'
-
-configurations {
-    shade
-    compile.extendsFrom shade
+plugins {
+	id 'com.github.johnrengelman.shadow' version '7.1.2'
+	id 'eclipse'
+	id 'java'
 }
 
 repositories {
-    mavenCentral()
-    jcenter()
-    
-    //Spigot
-    maven {
-        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
-    }
-    
-    //Skript
-    maven {
-        url "https://raw.githubusercontent.com/bensku/mvn-repo/master"
-    }
+	mavenCentral()
+
+	// Spigot
+	maven {
+		url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+	}
+
+	// Bungeecord
+	maven {
+		url "https://oss.sonatype.org/content/repositories/snapshots/"
+	}
+
+	// Skript
+	maven {
+		url 'https://repo.skriptlang.org/releases'
+	}
+
 }
 
 dependencies {
-    
-    //Skript
-    api (group: 'ch.njol', name: 'skript', version: '2.2-dev32') {
-        transitive = false
+   
+	// Nullable annotation
+	implementation (group: 'org.eclipse.jdt', name: 'org.eclipse.jdt.annotation', version: '2.2.700')
+
+	// Spigot/Bukkit
+	implementation (group: 'org.spigotmc', name: 'spigot-api', version: '1.19.2-R0.1-SNAPSHOT')
+
+	// Skript
+	implementation (group: 'com.github.SkriptLang', name: 'Skript', version: '2.6.3') {
+		transitive = false
 	}
 
 	//Joda-Time
-	shade (group: 'joda-time', name: 'joda-time', version: '2.10')
-	
-	//Nullable annotation
-	compile (group: 'org.eclipse.jdt', name: 'org.eclipse.jdt.annotation', version: '1.1.0')
-	
-	//Spigot/Bukkit
-	compile (group: 'org.spigotmc', name: 'spigot-api', version: '1.12.2-R0.1-SNAPSHOT')
+	shadow (group: 'joda-time', name: 'joda-time', version: '2.10')
+
 }
 
-jar {
-    configurations.shade.each { dep ->
-        from(project.zipTree(dep)){
-            exclude 'META-INF', 'META-INF/**'
-        }
-    }
+processResources {
+	filter ReplaceTokens, tokens: ["version": project.property("version")]
+	from ('lang') {
+		include '**/*'
+		into 'lang/'
+	}
+}
+
+shadowJar {
+	configurations = [project.configurations.shadow]
+	archiveVersion = project.property("version")
+	archiveBaseName = project.name
+	classifier = ''
+	dependencies {
+		exclude(dependency('org.spigotmc:'))
+		exclude(dependency('org.yaml:'))
+	}
 }
