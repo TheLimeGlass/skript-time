@@ -40,7 +40,7 @@ dependencies {
 	}
 
 	//Joda-Time
-	shadow (group: 'joda-time', name: 'joda-time', version: '2.12.3')
+	shadow (group: 'joda-time', name: 'joda-time', version: '2.12.4')
 
 }
 
